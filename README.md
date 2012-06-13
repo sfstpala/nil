@@ -16,38 +16,38 @@ The literals for the first three are what you'd expect.
 
  - Atom
 
-    12.5
-    "hello"
-    ...
+        12.5
+        "hello"
+        ...
 
  - Function call
 
-    (function argument)
-    (function argument argument)
-    ...
+        (function argument)
+        (function argument argument)
+        ...
 
  - Definition
 
-    (define name value)
+        (define name value)
 
  - Function
 
-    (lambda (x) (* x x))
-    (lambda (x y) (* y x))
-    (lambda xs (car xs))
+        (lambda (x) (* x x))
+        (lambda (x y) (* y x))
+        (lambda xs (car xs))
 
  - Conditional
 
-    (if condition true-case false-case)
+        (if condition true-case false-case)
 
 To define a function f(x) = x², you'd say
 
-    (define f (lambda (x)
-        (^ x 2)))
+        (define f (lambda (x)
+            (^ x 2)))
 
 This is a function that calculates the product of a list of numbers:
 
-    (define product (lambda (m)
-        (if m
-                (* (car m) (product (cdr m)))
-            1)))
+        (define product (lambda (m)
+            (if m
+                    (* (car m) (product (cdr m)))
+                1)))

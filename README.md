@@ -9,8 +9,9 @@ with no fixed specification for even the semantics.
 
 ### Types
 
-Types are integers (bignums), floats (double precision), lists and functions.
-The literals for the first three are what you'd expect.
+Types are integers (bignums), floats (double precision), strings, 
+lists and functions. The literals for the first three are what you'd expect.
+Lists are created using the builtin `list` function.
 
 ### Forms
 

@@ -41,6 +41,12 @@ Lists are created using the builtin `list` function.
 
         (if condition true-case false-case)
 
+ - List constructor
+
+        (list)
+        (list 1)
+        (list 1 2 3 4)
+
 To define a function f(x) = x², you'd say
 
         (define f (lambda (x)
@@ -52,3 +58,19 @@ This is a function that calculates the product of a list of numbers:
             (if m
                     (* (car m) (product (cdr m)))
                 1)))
+
+Where `(car x)` returns the first item of the non-empty list x (the *head*)
+and `(cdr x)` returns a new list containing all but that first item (the *tail*).
+
+### Bultins
+
+    (> a b)
+    (= a b)
+    (+ a b)
+    (- a b)
+    (* a b)
+    (/ a b)
+    (^ a b)
+    (print a)
+    (car a)
+    (cdr a)

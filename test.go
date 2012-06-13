@@ -727,16 +727,16 @@ func main() {
 (print (product (list 1 2 3 4)))
 
 
-(define M (lambda (n)
-    (if (> n 100.0)
-            (- n 10.0)
-        (M (M (+ n 11.0))))))
+    (define M (lambda (n)
+        (if (> n 100.0)
+                (- n 10.0)
+            (M (M (+ n 11.0))))))
 
-(define loop (lambda (n)
-    (print (M -10000.0))
-    (if (> n 1.0) (loop (- n 1.0)) 0.0)))
+    (define loop (lambda (n)
+        (print (M 99.0))
+        (if (> n 1.0) (loop (- n 1.0)) 0.0)))
 
-(loop 16.0)
+    (loop 16.0)
 
 `
     code := ""

@@ -92,7 +92,11 @@ calls it 16 times with a value of 99:
 
 ### Running
 
-There isn't a facility to execute source code files right now. If you're brave,
-open up "test.go" and change the code at the bottom of the file, then run:
+To compile the source code, and after installing "go" from your distributions
+package manager (e.g. `sudo apt-get install golang`), run
 
-    go run test.go
+    go build test.go
+
+Then run programs by typing
+
+    ./test example.nil

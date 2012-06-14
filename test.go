@@ -6,7 +6,11 @@ import (
     "strconv"
     "math"
     "math/big"
-	"container/list"
+    "container/list"
+    "bufio"
+    "os"
+    "io"
+    "flag"
 )
 
 const (
@@ -153,11 +157,11 @@ func Tokenize(code string) []string {
 }
 
 func listAppend(m *list.List, x interface{}) {
-	m.PushBack(x)
+    m.PushBack(x)
 }
 
 func listPop(m *list.List) {
-	m.Remove(m.Back())
+    m.Remove(m.Back())
 }
 
 func ParseTokens(t []string) *list.List {
@@ -166,30 +170,30 @@ func ParseTokens(t []string) *list.List {
         tokens.PushBack(t[i])
     }
     n := 0
-	s, o := new(list.List), new(list.List)
-	for e := tokens.Front(); e != nil; e = e.Next() {
-		if e.Value.(string) == "(" {
+    s, o := new(list.List), new(list.List)
+    for e := tokens.Front(); e != nil; e = e.Next() {
+        if e.Value.(string) == "(" {
             n++
-			listAppend(s, new(list.List))
-			listAppend(o, s)
-			s = s.Back().Value.(*list.List)
-		} else if e.Value.(string) == ")" {
+            listAppend(s, new(list.List))
+            listAppend(o, s)
+            s = s.Back().Value.(*list.List)
+        } else if e.Value.(string) == ")" {
             n--
-			s = o.Back().Value.(*list.List)
-			listPop(o)
-		} else {
-			listAppend(s, e.Value.(string))
-		}
-	}
-    if n != 0 {
-        panic("unbalanced parantheses")
+            s = o.Back().Value.(*list.List)
+            listPop(o)
+        } else {
+            listAppend(s, e.Value.(string))
+        }
     }
-	return s
+    if n != 0 {
+        Error("unbalanced parantheses")
+    }
+    return s
 }
 
 func Slicify(l *list.List) []interface{} {
     result := []interface{}{}
-	for e := l.Front(); e != nil; e = e.Next() {
+    for e := l.Front(); e != nil; e = e.Next() {
         if s, ok := e.Value.(string); ok {
             if len(s) > 0 {
                 result = append(result, s)
@@ -225,7 +229,7 @@ func numeric_binary(stack Stack,
             xf, _ := strconv.ParseFloat(x.String(), 64)
             result = func_float(xf, y)
         } else {
-            panic("type error")
+            Error("type error")
         }
     } else if x, ok := x_.(float64); ok {
         if y, ok := y_.(*big.Int); ok {
@@ -234,17 +238,16 @@ func numeric_binary(stack Stack,
         } else if y, ok := y_.(float64); ok {
             result = func_float(x, y)
         } else {
-            panic("type error")
+            Error("type error")
         }
     } else {
-        panic("type error")
+        Error("type error")
     }
     return append(stack, result)
 }
 
 func evaluate(code [][]int, names map[int]interface{}, stack Stack, local Local) (Stack, Local) {
     ip := 0
-    ictr := 0
     calls := []int{}
     outer := []*Local{&local}
     var skip bool
@@ -261,7 +264,6 @@ func evaluate(code [][]int, names map[int]interface{}, stack Stack, local Local)
             ip++
             skip = false
         }
-        ictr += 1
         if inst == -1 {
         } else if inst == 1 /* PRINT */ {
             x := stack[len(stack) - 1]
@@ -281,11 +283,11 @@ func evaluate(code [][]int, names map[int]interface{}, stack Stack, local Local)
             }
         } else if inst == 3 /* RCL */ {
             if data >= len(local) {
-                panic("illegal memory")
+                Error("illegal memory")
             }
             x := local[data]
             if x == nil {
-                panic(fmt.Sprintf("undefined: %v", names[data]))
+                Error(fmt.Sprintf("undefined: %v", names[data]))
             }
             stack = append(stack, x)
         } else if inst == 4 /* STORCL */ {
@@ -337,10 +339,10 @@ func evaluate(code [][]int, names map[int]interface{}, stack Stack, local Local)
                 if len(x) > 0 {
                     stack = append(stack, x[0])
                 } else {
-                    panic("cannot take car of the empty list")
+                    Error("cannot take car of the empty list")
                 }
             } else {
-                panic("not a list")
+                Error("not a list")
             }
         } else if inst == 33 /* CDR */ {
             x_ := stack[len(stack) - 1]
@@ -349,10 +351,10 @@ func evaluate(code [][]int, names map[int]interface{}, stack Stack, local Local)
                 if len(x) > 0 {
                     stack = append(stack, x[1:])
                 } else {
-                    panic("cannot take cdr of the empty list")
+                    Error("cannot take cdr of the empty list")
                 }
             } else {
-                panic("not a list")
+                Error("not a list")
             }
         } else if inst == 12 /* .END */ {
             outer = outer[:len(outer) - 1]
@@ -378,7 +380,7 @@ func evaluate(code [][]int, names map[int]interface{}, stack Stack, local Local)
                     stack = stack[:len(stack) - 2]
                     stack = append(stack, append(x, y...))
                 } else {
-                    panic("type error")
+                    Error("type error")
                 }
             } else {
                 stack = numeric_binary(stack,
@@ -489,10 +491,9 @@ func evaluate(code [][]int, names map[int]interface{}, stack Stack, local Local)
             }
         } else if inst == 72 /* .ENDIF */ {
         } else {
-            panic(fmt.Sprintf("error %v", inst))
+            Error(fmt.Sprintf("error %v", inst))
         }
     }
-    fmt.Println("executed", ictr, "bytecode instructions")
     return stack, local
 }
 
@@ -539,7 +540,7 @@ func translate(code string, index int) ([][]int, map[int]interface{}, int) {
         if i, ok := Instructions[inst]; ok {
             k = append(k, i)
         } else {
-            panic("invalid instruction: " + inst)
+            Error("invalid instruction: " + inst)
         }
         if inst == "eval" {
             k = append(k, index)
@@ -550,14 +551,14 @@ func translate(code string, index int) ([][]int, map[int]interface{}, int) {
             } else if d, err := strconv.Unquote(data); err == nil {
                 names[index] = d
             } else {
-                panic("error parsing constant: " + data)
+                Error("error parsing constant: " + data)
             }
             index++
         } else if inst == "list" {
             if i, err := strconv.ParseInt(data, 10, 64); err == nil {
                 k = append(k, int(i))
             } else {
-                panic("error parsing constant: " + data)
+                Error("error parsing constant: " + data)
             }
         } else if len(data) > 0 {
             if d, ok := vars[data]; ok {
@@ -679,12 +680,12 @@ func Eval(atom interface{}, tail, define string) string {
             if n, ok := list[0].(string); ok {
                 if i, ok := builtins2[n]; ok {
                     if len(args) != 2 {
-                        panic("invalid number of arguments")
+                        Error("invalid number of arguments")
                     }
                     return code + i + "\n"
                 } else if i, ok := builtins1[n]; ok {
                     if len(args) != 1 {
-                        panic("invalid number of arguments")
+                        Error("invalid number of arguments")
                     }
                     return code + i + "\n"
                 }
@@ -699,53 +700,58 @@ func Eval(atom interface{}, tail, define string) string {
                 return code
             }
         } else {
-            panic(fmt.Sprintf("not an expression: %v", list))
+            Error(fmt.Sprintf("not an expression: %v", list))
         }
     }
-    panic(fmt.Sprintf("empty: %v", atom))
+    Error(fmt.Sprintf("empty: %v", atom))
+    return ""
+}
+
+func ReadFile(filename string) string {
+    var r *bufio.Reader
+    f_in, error := os.Open(filename)
+    if error != nil {
+        Error(fmt.Sprintf("%v", error))
+    }
+    r = bufio.NewReader(f_in)
+    s := ""
+    for {
+        line, error := r.ReadString('\n')
+        if error == io.EOF {
+            break
+        } else if error != nil {
+            Error(error)
+        }
+        s += line
+    }
+    return s
+}
+
+func ReadLine(s string) string {
+    fmt.Print(s)
+    reader := bufio.NewReader(os.Stdin)
+    line, _ := reader.ReadString('\n')
+    return line[:len(line) - 1]
+}
+
+func Error(message interface{}) {
+    fmt.Fprintf(os.Stderr, "error: %s\n", message)
+    os.Exit(1)
 }
 
 func main() {
-    a := `
-
-    (print (+ (list 1 2 3) (list 4 5)))
-
-
-(print (^ 2.0 16.0))
-(print ((lambda xs) 1 2 3))
-
-(define m (list 1 2 3))
-(print m)
-(print (car m))
-(print (cdr m))
-
-(define product (lambda (m)
-    (if m
-            (* (car m) (product (cdr m)))
-        1)))
-
-(print (product (list 1 2 3 4)))
-
-
-    (define M (lambda (n)
-        (if (> n 100.0)
-                (- n 10.0)
-            (M (M (+ n 11.0))))))
-
-    (define loop (lambda (n)
-        (print (M 99.0))
-        (if (> n 1.0) (loop (- n 1.0)) 0.0)))
-
-    (loop 16.0)
-
-`
+    flag.Parse()
+    var a string
+    if len(flag.Args()) == 1 {
+        a = ReadFile(flag.Arg(0))
+    } else {
+        Error("missing filename")
+    }
     code := ""
     ast := Ast(a)
     for i := range ast {
         code += Eval(ast[i], "", "")
     }
-    fmt.Println(code)
-    //return
     c, names, varcount := translate(`
 
     ` +  code, 0)

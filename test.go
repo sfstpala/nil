@@ -254,11 +254,6 @@ func evaluate(code [][]int, names map[int]interface{}, stack Stack, local Local)
     for ip < len(code) {
         local = *outer[len(outer) - 1]
         inst, data := code[ip][0], code[ip][1]
-        /*for i := range Instructions {
-            if Instructions[i] == inst {
-                fmt.Println(i, names[data], stack)//, data, stack, names)
-            }
-        }*/
         ip++
         if skip {
             ip++
@@ -268,7 +263,11 @@ func evaluate(code [][]int, names map[int]interface{}, stack Stack, local Local)
         } else if inst == 1 /* PRINT */ {
             x := stack[len(stack) - 1]
             stack = stack[:len(stack) - 1]
-            fmt.Println(">>>", x)
+            if _, ok := x.(int); ok {
+                fmt.Println(">>>", "#compiled-procedure")
+            } else {
+                fmt.Println(">>>", x)
+            }
             stack = append(stack, big.NewInt(0))
         } else if inst == 2 /* STO */ {
             if len(local) <= data {
@@ -276,11 +275,7 @@ func evaluate(code [][]int, names map[int]interface{}, stack Stack, local Local)
                 local = append(local, ext...)
             }
             local[data] = stack[len(stack) - 1]
-            if code[ip + 1][0] != 3 {
-                stack = stack[:len(stack) - 1]
-            } else {
-                ip++
-            }
+            stack = stack[:len(stack) - 1]
         } else if inst == 3 /* RCL */ {
             if data >= len(local) {
                 Error("illegal memory")
@@ -752,8 +747,28 @@ func main() {
     for i := range ast {
         code += Eval(ast[i], "", "")
     }
+    fmt.Println(code)
     c, names, varcount := translate(`
-
+        .sub +
+        .end
+        .sub -
+        .end
+        .sub *
+        .end
+        .sub /
+        .end
+        .sub >
+        .end
+        .sub =
+        .end
+        .sub ^
+        .end
+        .sub print
+        .end
+        .sub car
+        .end
+        .sub cdr
+        .end
     ` +  code, 0)
     stack, local := Stack{}, make(Local, varcount)
     stack, local = evaluate(c, names, stack, local)

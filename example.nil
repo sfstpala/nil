@@ -1,5 +1,12 @@
 (print (+ (list 1 2 3) (list 4 5)))
 
+(define filter (lambda (a fn)
+    (if a
+            (+ (if (fn (car a)) (list (car a)) (list)) (filter (cdr a) fn))
+        a)))
+
+(print (filter (list 1 2 3 4 5) (lambda (x) (> x 2))))
+
 
 (print (^ 2.0 0.5))
 (print ((lambda xs) 1 2 3))
@@ -23,7 +30,7 @@
         (M (M (+ n 11.0))))))
 
 (define loop (lambda (n)
-    (print (M -1000.0))
+    (print (M 99.0))
     (if (> n 1.0) (loop (- n 1.0)) 0.0)))
 
-(loop 1.0)
+(loop 2.0)

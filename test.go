@@ -572,7 +572,6 @@ func translate(code string, index int) ([][]int, map[int]interface{}, int) {
         }
         m = append(m, k)
         if inst == ".sub" {
-            fmt.Println(inst, context - 1, data)
             m = append(m, []int{100, context - 1})
         }
     }
@@ -754,7 +753,6 @@ func main() {
     for i := range ast {
         code += Eval(ast[i], "", "")
     }
-    fmt.Println(code)
     c, names, varcount := translate(`
         .sub +
         .end

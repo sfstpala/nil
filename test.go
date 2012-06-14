@@ -747,7 +747,6 @@ func main() {
     for i := range ast {
         code += Eval(ast[i], "", "")
     }
-    fmt.Println(code)
     c, names, varcount := translate(`
         .sub +
         .end

@@ -12,13 +12,13 @@
             0
         1)))
 
-(define quicksort (lambda (m)
-    (if m
+(define quicksort (lambda (xs)
+    (if xs
             ((lambda (a b c) (+ (+ a b) c))
-                (quicksort (filter (cdr m) (lambda (x) (> (car m) x))))
-                (list (car m))
-                (quicksort (filter (cdr m) (lambda (x) (<= (car m) x)))))
-        m)))
+                (quicksort (filter (cdr xs) (lambda (x) (> (car xs) x))))
+                (list (car xs))
+                (quicksort (filter (cdr xs) (lambda (x) (<= (car xs) x)))))
+        xs)))
 
 (print (list 4 7 3 1 9 5 4 6))
 (print (quicksort (list 4 7 3 1 9 5 4 6)))

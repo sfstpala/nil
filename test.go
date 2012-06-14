@@ -270,10 +270,6 @@ func evaluate(code [][]int, names map[int]interface{}, stack Stack, local Local)
             }
             stack = append(stack, big.NewInt(0))
         } else if inst == 2 /* STO */ {
-            if len(local) <= data {
-                ext := make(Local, data - len(local))
-                local = append(local, ext...)
-            }
             local[data] = stack[len(stack) - 1]
             stack = stack[:len(stack) - 1]
         } else if inst == 3 /* RCL */ {
@@ -286,10 +282,6 @@ func evaluate(code [][]int, names map[int]interface{}, stack Stack, local Local)
             }
             stack = append(stack, x)
         } else if inst == 4 /* STORCL */ {
-            if len(local) <= data {
-                ext := make(Local, data - len(local))
-                local = append(local, ext...)
-            }
             local[data] = stack[len(stack) - 1]
         } else if inst == 8 /* EVAL */ {
             stack = append(stack, names[data])
@@ -485,6 +477,10 @@ func evaluate(code [][]int, names map[int]interface{}, stack Stack, local Local)
                 }
             }
         } else if inst == 72 /* .ENDIF */ {
+        } else if inst == 100 /* context  */ {
+            cp := *outer[data]
+            outer = outer[:len(outer) - 1]
+            outer = append(outer, &cp)
         } else {
             Error(fmt.Sprintf("error %v", inst))
         }
@@ -524,6 +520,7 @@ func translate(code string, index int) ([][]int, map[int]interface{}, int) {
     vars := map[interface{}]int{}
     m := [][]int{}
     c := strings.Split(code, "\n")
+    context := 0
     for i := range c {
         j := strings.Trim(c[i], " ")
         if len(j) == 0 {
@@ -536,6 +533,12 @@ func translate(code string, index int) ([][]int, map[int]interface{}, int) {
             k = append(k, i)
         } else {
             Error("invalid instruction: " + inst)
+        }
+        if inst == ".sub" {
+            context++
+        }
+        if inst == ".end" {
+            context--
         }
         if inst == "eval" {
             k = append(k, index)
@@ -568,6 +571,10 @@ func translate(code string, index int) ([][]int, map[int]interface{}, int) {
             k = append(k, -1)
         }
         m = append(m, k)
+        if inst == ".sub" {
+            fmt.Println(inst, context - 1, data)
+            m = append(m, []int{100, context - 1})
+        }
     }
     return m, names, index
 }
@@ -747,6 +754,7 @@ func main() {
     for i := range ast {
         code += Eval(ast[i], "", "")
     }
+    fmt.Println(code)
     c, names, varcount := translate(`
         .sub +
         .end

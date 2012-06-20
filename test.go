@@ -635,24 +635,48 @@ func Eval(atom interface{}, tail, define string) string {
                 return code
             }
         } else if f, ok := list[0].(string); ok && f == "if" {
+            /* either (if <cond> <expr>) or (if <cond> <expr> <expr>) */
             cond := Eval(list[1], "", "")
             true_case := Eval(list[2], tail, "")
-            false_case := Eval(list[3], tail, "")
+            var false_case string
+            if len(list) == 4 {
+                false_case = Eval(list[3], tail, "")
+            } else {
+                false_case = ""
+            }
             code = cond + ".if\n"
             c := strings.Split(true_case, "\n")
             for j := range c {
                 code += "  " + c[j] + "\n"
             }
             code += ".else\n"
-            d := strings.Split(false_case, "\n")
-            for j := range d {
-                code += "  " + d[j] + "\n"
+            if len(list) == 4 {
+                d := strings.Split(false_case, "\n")
+                for j := range d {
+                    code += "  " + d[j] + "\n"
+                }
+            } else {
+                code += "list 0\n"
             }
             code += ".endif\n"
             return code
         } else if f, ok := list[0].(string); ok && f == "def" {
-            code := Eval(list[2], "", list[1].(string))
-            code += "storcl " + list[1].(string) + "\n"
+            /* either (def <name> <expr>) or (def ((<name> <expr>) <name> <expr>))) */
+            if len(list) == 3 {
+                code := Eval(list[2], "", list[1].(string))
+                code += "storcl " + list[1].(string) + "\n"
+                return code
+            }
+            code := ""
+            items := list[1].([]interface{})
+            n := ""
+            for i := range items {
+                n = items[i].([]interface{})[0].(string);
+                x := items[i].([]interface{})[1];
+                code += Eval(x, "", n)
+                code += "sto " + n + "\n"
+            }
+            code += "rcl " + n + "\n"
             return code
         } else if f, ok := list[0].(string); ok && f == "list" {
             args := list[1:]
@@ -740,20 +764,13 @@ func Error(message interface{}) {
     os.Exit(1)
 }
 
-func main() {
-    flag.Parse()
-    var a string
-    if len(flag.Args()) == 1 {
-        a = ReadFile(flag.Arg(0))
-    } else {
-        Error("missing filename")
-    }
+func run(exprs string, stack Stack, local Local) (Stack, Local) {
     code := ""
-    ast := Ast(a)
+    ast := Ast(exprs)
     for i := range ast {
         code += Eval(ast[i], "", "")
     }
-    c, names, varcount := translate(`
+    c, names, _ := translate(`
         .sub +
         .end
         .sub -
@@ -775,6 +792,44 @@ func main() {
         .sub cdr
         .end
     ` +  code, 0)
-    stack, local := Stack{}, make(Local, varcount)
-    stack, local = evaluate(c, names, stack, local)
+    return evaluate(c, names, stack, local)
+}
+
+func Repl(stack Stack, local Local) {
+    for {
+        expr := ReadLine(">>> ")
+        for {
+            n := 0;
+            for i := 0; i < len(expr); i++ {
+                s := expr[i:i+1]
+                if s == "(" {
+                    n += 1
+                } else if s == ")" {
+                    n -= 1
+                }
+            }
+            if n == 0 {
+                break
+            } else {
+                expr += ReadLine("... ")
+            }
+        }
+        if len(expr) > 0 {
+            stack, local = run(expr, stack, local);
+        }
+    }
+}
+
+func main() {
+    flag.Parse()
+    var a string
+    stack, local := Stack{}, make(Local, 2048)
+    if len(flag.Args()) == 1 {
+        a = ReadFile(flag.Arg(0))
+        stack, local = run(a, stack, local)
+    } else if len(flag.Args()) == 0 {
+        Repl(stack, local)
+    } else {
+        Error("missing filename")
+    }
 }

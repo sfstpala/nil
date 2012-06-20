@@ -1,4 +1,4 @@
-(define filter (lambda (xs fn)
+(def filter (fun (xs fn)
     (if xs
             (+
                 (if (fn (car xs))
@@ -7,17 +7,17 @@
                 (filter (cdr xs) fn))
         xs)))
 
-(define <= (lambda (x y)
+(def <= (fun (x y)
     (if (> x y)
             0
         1)))
 
-(define quicksort (lambda (xs)
+(def quicksort (fun (xs)
     (if xs
-            ((lambda (a b c) (+ (+ a b) c))
-                (quicksort (filter (cdr xs) (lambda (x) (> (car xs) x))))
+            ((fun (a b c) (+ (+ a b) c))
+                (quicksort (filter (cdr xs) (fun (x) (> (car xs) x))))
                 (list (car xs))
-                (quicksort (filter (cdr xs) (lambda (x) (<= (car xs) x)))))
+                (quicksort (filter (cdr xs) (fun (x) (<= (car xs) x)))))
         xs)))
 
 (print (list 4 7 3 1 9 5 4 6))

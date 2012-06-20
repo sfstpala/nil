@@ -29,13 +29,13 @@ Lists are created using the builtin `list` function.
 
  - Definition
 
-        (define name value)
+        (def name value)
 
- - Function
+ - Anonymous Function
 
-        (lambda (x) (* x x))
-        (lambda (x y) (* y x))
-        (lambda xs (car xs))
+        (fun (x) (* x x))
+        (fun (x y) (* y x))
+        (fun xs (car xs))
 
  - Conditional
 
@@ -49,12 +49,12 @@ Lists are created using the builtin `list` function.
 
 To define a function f(x) = x², you'd say
 
-        (define f (lambda (x)
+        (def f (fun (x)
             (^ x 2)))
 
 This is a function that calculates the product of a list of numbers:
 
-        (define product (lambda (m)
+        (def product (fun (m)
             (if m
                     (* (car m) (product (cdr m)))
                 1)))
@@ -65,12 +65,12 @@ and `(cdr x)` returns a new list containing all but that first item (the *tail*)
 For a more complicated example, here's the McCarthy 91 function and a loop that
 calls it 16 times with a value of 99:
 
-    (define M (lambda (n)
+    (def M (fun (n)
         (if (> n 100.0)
                 (- n 10.0)
             (M (M (+ n 11.0))))))
 
-    (define loop (lambda (n)
+    (def loop (fun (n)
         (print (M 99.0))
         (if (> n 1.0) (loop (- n 1.0)) 0.0)))
 

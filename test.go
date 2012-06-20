@@ -597,7 +597,7 @@ func Eval(atom interface{}, tail, define string) string {
             return ""
         }
     } else if list, ok := atom.([]interface{}); ok && len(list) > 0 {
-        if f, ok := list[0].(string); ok && f == "lambda" {
+        if f, ok := list[0].(string); ok && f == "fun" {
             args := list[1]
             body := list[2:]
             if len(body) > 0 {
@@ -650,7 +650,7 @@ func Eval(atom interface{}, tail, define string) string {
             }
             code += ".endif\n"
             return code
-        } else if f, ok := list[0].(string); ok && f == "define" {
+        } else if f, ok := list[0].(string); ok && f == "def" {
             code := Eval(list[2], "", list[1].(string))
             code += "storcl " + list[1].(string) + "\n"
             return code

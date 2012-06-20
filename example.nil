@@ -1,14 +1,14 @@
 (print (+ (list 1 2 3) (list 4 5)))
 
 (print (^ 2.0 0.5))
-(print ((lambda xs) 1 2 3))
+(print ((fun xs) 1 2 3))
 
-(define m (list 1 2 3))
+(def m (list 1 2 3))
 (print m)
 (print (car m))
 (print (cdr m))
 
-(define product (lambda (m)
+(def product (fun (m)
     (if m
             (* (car m) (product (cdr m)))
         1)))
@@ -16,12 +16,12 @@
 (print (product (list 1 2 3 4)))
 
 
-(define M (lambda (n)
+(def M (fun (n)
     (if (> n 100.0)
             (- n 10.0)
         (M (M (+ n 11.0))))))
 
-(define loop (lambda (n)
+(def loop (fun (n)
     (print (M 99.0))
     (if (> n 1.0) (loop (- n 1.0)) 0.0)))
 
